@@ -1,0 +1,126 @@
+*,
+:after,
+:before {
+    box-sizing: border-box
+}
+
+body {
+    font-family: monospace;
+    font-size: 16px;
+    text-align: center;
+    color: #212121;
+    background-color: #fff
+    
+}
+
+img {
+    display: block;
+    max-width: 100%;
+    height: auto
+}
+
+.search-form {
+    padding-top: 20px;
+    padding-bottom: 20px;
+    text-align: center;
+    background-color: blue;
+}
+
+.info {
+    padding: 15px 5px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.info-item {
+    margin: 0;
+    padding: 0;
+}
+
+.photo-card img {
+    background-size: contain;
+    background-position: 50%
+}
+
+.gallery {
+    margin: 10px auto;
+    padding: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+
+    @media screen and (max-width: 639px) {
+            width: 480px;
+        }
+
+
+    @media screen and (min-width: 640px) and (max-width: 1279px) {
+        width: 640px;
+    }
+
+
+    // @media screen and (min-width: 960px) and (max-width: 1279px) {
+    //     width: 960px;
+    // }
+
+        @media screen and (min-width: 1280px) {
+            width: 1280px;
+        }
+}
+
+.photo-card {
+    list-style: none;
+    padding: 0;
+    width: 300px;
+    
+    box-shadow: 1px 4px 6px rgba(0, 0, 0, .16), 0 4px 4px rgba(0, 0, 0, .06), 0 1px 1px rgba(0, 0, 0, .12);
+    transition: transform .25s linear
+}
+
+.photo-card:focus,
+.photo-card:hover {
+    transform: scale(1.05);
+    cursor: pointer
+}
+
+
+.load-more-btn.is-hidden,
+.spinner.is-hidden {
+    display: none
+}
+
+
+input[name=searchQuery] {
+    padding: 5px 15px;
+    border-radius: 4px;
+    // font-size: inherit;
+    // color: #000;
+   
+}
+
+.button {
+    
+    padding: 5px 15px;
+    font-weight: 700;
+    border: none;
+    border-radius: 4px;
+    box-shadow: 1px 4px 6px rgba(0, 0, 0, .16), 0 4px 4px rgba(0, 0, 0, .06), 0 1px 1px rgba(0, 0, 0, .12);
+
+}
+
+.load-more-btn {
+display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+}
+
+.spinner {
+    display: inline-block;
+    width: 1.2rem;
+    height: 1.2rem;
+    margin-right: 8px;
+    background-image: url(../images/spinner.gif);
+    background-size: contain;
+}

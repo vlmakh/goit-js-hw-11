@@ -89,6 +89,14 @@ async function onLoadMore() {
       "We're sorry, but you've reached the end of search results."
     );
   }
+
+  const { height: cardHeight } =
+    refs.divGallery.firstElementChild.getBoundingClientRect();
+
+  window.scrollBy({
+    top: window.innerHeight,
+    behavior: 'smooth',
+  });
 }
 
 function markupImages(images) {

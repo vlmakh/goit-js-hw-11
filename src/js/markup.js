@@ -15,7 +15,6 @@ let pagesQty = 0;
 let pageNumber = 0;
 
 refs.searchForm.addEventListener('submit', onSearch);
-refs.btnLoadMore.addEventListener('click', onLoadMore);
 
 Notiflix.Notify.init({
   position: 'right-top',
@@ -24,12 +23,12 @@ Notiflix.Notify.init({
 
 function onSearch(e) {
   e.preventDefault();
-
+  pageNumber = 0;
   clearImagesSearch();
   apiQuery.resetPageNum();
-  apiQuery.query = e.currentTarget.elements.inputQuery.value.trim();
+  apiQuery.searchQuery = e.currentTarget.elements.inputQuery.value.trim();
 
-  if (apiQuery.query === '') {
+  if (apiQuery.searchQuery === '') {
     return Notiflix.Notify.warning(
       'Empty query. Please input something for search'
     );
@@ -46,6 +45,7 @@ function onSearch(e) {
       );
     }
 
+    console.log(data);
     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
     markupImages(data.hits);
     hideSpinner();
@@ -113,10 +113,12 @@ function clearImagesSearch() {
 
 function showLoadMoreBtn() {
   refs.btnLoadMore.classList.remove('is-hidden');
+  refs.btnLoadMore.addEventListener('click', onLoadMore);
 }
 
 function hideLoadMoreBtn() {
   refs.btnLoadMore.classList.add('is-hidden');
+  refs.btnLoadMore.removeEventListener('click', onLoadMore);
 }
 
 function showSpinner() {

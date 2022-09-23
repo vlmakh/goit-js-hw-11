@@ -21,7 +21,7 @@ Notiflix.Notify.init({
   cssAnimationStyle: 'from-top', // 'zoom' - 'from-top'
 });
 
-function onSearch(e) {
+async function onSearch(e) {
   e.preventDefault();
   pageNumber = 0;
   clearImagesSearch();
@@ -37,46 +37,44 @@ function onSearch(e) {
   showLoadMoreBtn();
   showSpinner();
 
-  apiQuery.fetchImages().then(data => {
-    if (data.totalHits === 0) {
-      hideLoadMoreBtn();
-      return Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    }
+  const data = await apiQuery.fetchImages();
+  // apiQuery.fetchImages().then(data => {
+  if (data.totalHits === 0) {
+    hideLoadMoreBtn();
+    return Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  }
 
-    console.log(data);
-    Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-    markupImages(data.hits);
-    hideSpinner();
+  Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+  markupImages(data.hits);
+  hideSpinner();
 
-    totalHits = data.totalHits;
-    pagesQty = totalHits / perPage;
-    pageNumber += 1;
+  totalHits = data.totalHits;
+  pagesQty = totalHits / perPage;
+  pageNumber += 1;
 
-    if (pageNumber >= pagesQty) {
-      hideLoadMoreBtn();
-    }
-  });
+  if (pageNumber >= pagesQty) {
+    hideLoadMoreBtn();
+  }
+  // });
 }
 
-function onLoadMore() {
+async function onLoadMore() {
   showLoadMoreBtn();
   showSpinner();
 
-  apiQuery.fetchImages().then(data => {
-    markupImages(data.hits);
-    hideSpinner();
+  const data = await apiQuery.fetchImages();
+  markupImages(data.hits);
+  hideSpinner();
+  pageNumber += 1;
 
-    pageNumber += 1;
-
-    if (pageNumber >= pagesQty) {
-      hideLoadMoreBtn();
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
-    }
-  });
+  if (pageNumber >= pagesQty) {
+    hideLoadMoreBtn();
+    Notiflix.Notify.info(
+      "We're sorry, but you've reached the end of search results."
+    );
+  }
 }
 
 function markupImages(images) {

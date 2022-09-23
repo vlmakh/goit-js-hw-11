@@ -1,4 +1,5 @@
 import ApiQuery from './api-query';
+import { perPage } from './api-query';
 import Notiflix from 'notiflix';
 
 const refs = {
@@ -9,6 +10,9 @@ const refs = {
 };
 
 const apiQuery = new ApiQuery();
+let totalHits = 0;
+let pagesQty = 0;
+let pageNumber = 0;
 
 refs.searchForm.addEventListener('submit', onSearch);
 refs.btnLoadMore.addEventListener('click', onLoadMore);
@@ -45,15 +49,33 @@ function onSearch(e) {
     Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
     markupImages(data.hits);
     hideSpinner();
+
+    totalHits = data.totalHits;
+    pagesQty = totalHits / perPage;
+    pageNumber += 1;
+
+    if (pageNumber >= pagesQty) {
+      hideLoadMoreBtn();
+    }
   });
 }
 
 function onLoadMore() {
   showLoadMoreBtn();
   showSpinner();
+
   apiQuery.fetchImages().then(data => {
     markupImages(data.hits);
     hideSpinner();
+
+    pageNumber += 1;
+
+    if (pageNumber >= pagesQty) {
+      hideLoadMoreBtn();
+      Notiflix.Notify.info(
+        "We're sorry, but you've reached the end of search results."
+      );
+    }
   });
 }
 

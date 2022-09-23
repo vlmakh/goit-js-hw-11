@@ -24,7 +24,7 @@ Notiflix.Notify.init({
 
 function onSearch(e) {
   e.preventDefault();
-
+  pageNumber = 0;
   clearImagesSearch();
   apiQuery.resetPageNum();
   apiQuery.query = e.currentTarget.elements.inputQuery.value.trim();

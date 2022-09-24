@@ -12,9 +12,8 @@ const refs = {
 };
 
 const apiQuery = new ApiQuery();
-let totalHits = 0;
-let pagesQty = 0;
-let pageNumber = 0;
+let totalLoadedImgs = 0;
+let leftToLoadImgs = 0;
 
 refs.searchForm.addEventListener('submit', onSearch);
 refs.divGallery.addEventListener('click', onImageClick);
@@ -37,10 +36,11 @@ function onImageClick(evt) {
 
 async function onSearch(e) {
   e.preventDefault();
-  pageNumber = 0;
   clearImagesSearch();
   apiQuery.resetPageNum();
   apiQuery.searchQuery = e.currentTarget.elements.inputQuery.value.trim();
+  totalLoadedImgs = 0;
+  leftToLoadImgs = 0;
 
   if (apiQuery.searchQuery === '') {
     return Notiflix.Notify.warning(
@@ -60,17 +60,19 @@ async function onSearch(e) {
     );
   }
 
-  Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
+  if (data.totalHits <= perPage) {
+    totalLoadedImgs = data.totalHits;
+    hideLoadMoreBtn();
+  } else {
+    totalLoadedImgs = perPage;
+    leftToLoadImgs = data.totalHits - totalLoadedImgs;
+  }
+
+  Notiflix.Notify.success(
+    `Hooray! We found ${data.totalHits} images. ${totalLoadedImgs} of ${data.totalHits} images loaded`
+  );
   markupImages(data.hits);
   hideSpinner();
-
-  totalHits = data.totalHits;
-  pagesQty = totalHits / perPage;
-  pageNumber += 1;
-
-  if (pageNumber >= pagesQty) {
-    hideLoadMoreBtn();
-  }
   // });
 }
 
@@ -81,22 +83,26 @@ async function onLoadMore() {
   const data = await apiQuery.fetchImages();
   markupImages(data.hits);
   hideSpinner();
-  pageNumber += 1;
-
-  if (pageNumber >= pagesQty) {
-    hideLoadMoreBtn();
-    Notiflix.Notify.info(
-      "We're sorry, but you've reached the end of search results."
-    );
-  }
-
-  const { height: cardHeight } =
-    refs.divGallery.firstElementChild.getBoundingClientRect();
 
   window.scrollBy({
     top: window.innerHeight,
     behavior: 'smooth',
   });
+
+  if (leftToLoadImgs <= perPage) {
+    totalLoadedImgs += leftToLoadImgs;
+    hideLoadMoreBtn();
+    Notiflix.Notify.info(
+      `All ${totalLoadedImgs} of ${data.totalHits} images loaded. You reached the end of search results.`
+    );
+    return;
+  } else {
+    totalLoadedImgs += perPage;
+    leftToLoadImgs -= perPage;
+    Notiflix.Notify.success(
+      `${totalLoadedImgs} of ${data.totalHits} images loaded.`
+    );
+  }
 }
 
 function markupImages(images) {

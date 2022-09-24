@@ -1,32 +1,48 @@
 import ApiQuery from './api-query';
 import { perPage } from './api-query';
 import Notiflix from 'notiflix';
+import SimpleLightbox from 'simplelightbox';
+import 'simplelightbox/dist/simple-lightbox.min.css';
 
 const refs = {
   searchForm: document.querySelector('#search-form'),
   divGallery: document.querySelector('#gallery'),
   btnLoadMore: document.querySelector('[data-load-more]'),
+  btnClear: document.querySelector('[data-clear]'),
   spinner: document.querySelector('.spinner'),
 };
 
 const apiQuery = new ApiQuery();
-let totalHits = 0;
-let pagesQty = 0;
-let pageNumber = 0;
+let totalLoadedImgs = 0;
+let leftToLoadImgs = 0;
 
 refs.searchForm.addEventListener('submit', onSearch);
+refs.divGallery.addEventListener('click', onImageClick);
+refs.btnClear.addEventListener('click', onClearClick);
 
 Notiflix.Notify.init({
   position: 'right-top',
   cssAnimationStyle: 'from-top', // 'zoom' - 'from-top'
 });
 
-function onSearch(e) {
+function onImageClick(evt) {
+  evt.preventDefault();
+
+  if (!evt.target.classList.contains('gallery__image')) {
+    return;
+  }
+
+  var gallery = new SimpleLightbox('.gallery a', {});
+  gallery.refresh();
+}
+
+async function onSearch(e) {
   e.preventDefault();
-  pageNumber = 0;
   clearImagesSearch();
   apiQuery.resetPageNum();
   apiQuery.searchQuery = e.currentTarget.elements.inputQuery.value.trim();
+  totalLoadedImgs = 0;
+  leftToLoadImgs = 0;
 
   if (apiQuery.searchQuery === '') {
     return Notiflix.Notify.warning(
@@ -37,51 +53,64 @@ function onSearch(e) {
   showLoadMoreBtn();
   showSpinner();
 
-  apiQuery.fetchImages().then(data => {
-    if (data.totalHits === 0) {
-      hideLoadMoreBtn();
-      return Notiflix.Notify.failure(
-        'Sorry, there are no images matching your search query. Please try again.'
-      );
-    }
+  const data = await apiQuery.fetchImages();
+  // apiQuery.fetchImages().then(data => {
+  if (data.totalHits === 0) {
+    hideLoadMoreBtn();
+    return Notiflix.Notify.failure(
+      'Sorry, there are no images matching your search query. Please try again.'
+    );
+  }
 
-    console.log(data);
-    Notiflix.Notify.success(`Hooray! We found ${data.totalHits} images.`);
-    markupImages(data.hits);
-    hideSpinner();
+  if (data.totalHits <= perPage) {
+    totalLoadedImgs = data.totalHits;
+    hideLoadMoreBtn();
+  } else {
+    totalLoadedImgs = perPage;
+    leftToLoadImgs = data.totalHits - totalLoadedImgs;
+  }
 
-    totalHits = data.totalHits;
-    pagesQty = totalHits / perPage;
-    pageNumber += 1;
-
-    if (pageNumber >= pagesQty) {
-      hideLoadMoreBtn();
-    }
-  });
+  Notiflix.Notify.success(
+    `Hooray! We found ${data.totalHits} images. ${totalLoadedImgs} of ${data.totalHits} images loaded`
+  );
+  markupImages(data.hits);
+  hideSpinner();
+  // });
 }
 
-function onLoadMore() {
+async function onLoadMore() {
   showLoadMoreBtn();
   showSpinner();
 
-  apiQuery.fetchImages().then(data => {
-    markupImages(data.hits);
-    hideSpinner();
+  const data = await apiQuery.fetchImages();
+  markupImages(data.hits);
+  hideSpinner();
 
-    pageNumber += 1;
-
-    if (pageNumber >= pagesQty) {
-      hideLoadMoreBtn();
-      Notiflix.Notify.info(
-        "We're sorry, but you've reached the end of search results."
-      );
-    }
+  window.scrollBy({
+    top: window.innerHeight,
+    behavior: 'smooth',
   });
+
+  if (leftToLoadImgs <= perPage) {
+    totalLoadedImgs += leftToLoadImgs;
+    hideLoadMoreBtn();
+    Notiflix.Notify.info(
+      `All ${totalLoadedImgs} of ${data.totalHits} images loaded. You reached the end of search results.`
+    );
+    return;
+  } else {
+    totalLoadedImgs += perPage;
+    leftToLoadImgs -= perPage;
+    Notiflix.Notify.success(
+      `${totalLoadedImgs} of ${data.totalHits} images loaded.`
+    );
+  }
 }
 
 function markupImages(images) {
   for (const {
     webformatURL,
+    largeImageURL,
     tags,
     likes,
     views,
@@ -89,18 +118,19 @@ function markupImages(images) {
     downloads,
   } of images) {
     const imgCard = `
-      <div class="photo-card">
-        <div class="img-thumb">
-        <img
+      <div class="gallery__card">
+        <div class="gallery__thumb">
+        <a href="${largeImageURL}">
+        <img class="gallery__image"
           src="${webformatURL}"
           alt="${tags}"
           loading="lazy"
-        /></div>
+        /></a></div>
         <div class="info">
-          <p class="info-item"><b>Likes</b><br />${likes}</p>
-          <p class="info-item"><b>Views</b><br />${views}</p>
-          <p class="info-item"><b>Comments</b><br />${comments}</p>
-          <p class="info-item"><b>Downloads</b><br />${downloads}</p>
+          <p class="info__item"><b>Likes</b><br />${likes}</p>
+          <p class="info__item"><b>Views</b><br />${views}</p>
+          <p class="info__item"><b>Comments</b><br />${comments}</p>
+          <p class="info__item"><b>Downloads</b><br />${downloads}</p>
         </div>
       </div>`;
     refs.divGallery.insertAdjacentHTML('beforeend', imgCard);
@@ -129,4 +159,10 @@ function showSpinner() {
 function hideSpinner() {
   refs.spinner.classList.add('is-hidden');
   refs.btnLoadMore.disabled = false;
+}
+
+function onClearClick() {
+  clearImagesSearch();
+  hideLoadMoreBtn();
+  refs.searchForm.reset();
 }

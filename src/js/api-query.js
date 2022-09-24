@@ -11,7 +11,8 @@ export default class ApiQuery {
     this.page = 1;
   }
 
-  fetchImages() {
+  async fetchImages() {
+    // --- вариант 1 - fetch
     // return fetch(
     //   `${MAIN_URL}&q=${this.searchQuery}&page=${this.page}&per_page=${perPage}`
     // )
@@ -21,13 +22,21 @@ export default class ApiQuery {
     //     return data;
     //   });
 
-    return axios
-      .get(`&q=${this.searchQuery}&page=${this.page}&per_page=${perPage}`)
-      .then(response => {
-        this.increasePageNum();
-        const data = response.data;
-        return data;
-      });
+    // --- вариант 2 - axios
+    // return axios
+    //   .get(`&q=${this.searchQuery}&page=${this.page}&per_page=${perPage}`)
+    //   .then(response => {
+    //     this.increasePageNum();
+    //     const data = response.data;
+    //     return data;
+    //   });
+
+    // --- вариант 3 - async-axios
+    const response = await axios.get(
+      `&q=${this.searchQuery}&page=${this.page}&per_page=${perPage}`
+    );
+    this.increasePageNum();
+    return response.data;
   }
 
   increasePageNum() {

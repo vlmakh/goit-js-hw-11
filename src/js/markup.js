@@ -8,6 +8,7 @@ const refs = {
   searchForm: document.querySelector('#search-form'),
   divGallery: document.querySelector('#gallery'),
   btnLoadMore: document.querySelector('[data-load-more]'),
+  btnClear: document.querySelector('[data-clear]'),
   spinner: document.querySelector('.spinner'),
 };
 
@@ -17,6 +18,7 @@ let leftToLoadImgs = 0;
 
 refs.searchForm.addEventListener('submit', onSearch);
 refs.divGallery.addEventListener('click', onImageClick);
+refs.btnClear.addEventListener('click', onClearClick);
 
 Notiflix.Notify.init({
   position: 'right-top',
@@ -157,4 +159,10 @@ function showSpinner() {
 function hideSpinner() {
   refs.spinner.classList.add('is-hidden');
   refs.btnLoadMore.disabled = false;
+}
+
+function onClearClick() {
+  clearImagesSearch();
+  hideLoadMoreBtn();
+  refs.searchForm.reset();
 }
